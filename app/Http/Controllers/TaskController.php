@@ -7,11 +7,26 @@ use Illuminate\Http\Request;
 
 class TaskController extends Controller
 {
-    public function index()
+    public function index(Request $request)
     {
-        $tasks = auth()->user()->tasks()->orderBy('created_at', 'desc')->get();
+        $query = auth()->user()->tasks()->orderBy('created_at', 'desc');
+
+        if (isset($request->search)) {
+            $query->where('title', 'like', '%' . $request->search . '%');
+        }
+        
+        if (isset($request->priority)) {
+            $query->where('priority', $request->priority);
+        }
+        
+        if (isset($request->status)) {
+            $query->where('status', $request->status);
+        }
+        $tasks = $query->get();
+
         return view('tasks.index', compact('tasks'));
     }
+
 
     public function create()
     {
@@ -23,6 +38,7 @@ class TaskController extends Controller
         $validated = $request->validate([
             'title' => 'required|string|max:255',
             'description' => 'required',
+            'priority' => 'nullable|integer|in:1,2,3',
         ]);
 
         auth()->user()->tasks()->create($validated + ['status' => false]);
@@ -35,6 +51,8 @@ class TaskController extends Controller
         $validated = $request->validate([
             'title' => 'required|string|max:255',
             'description' => 'required',
+            'status' => 'required|boolean',
+            'priority' => 'nullable|integer|in:1,2,3',
         ]);
 
         $task->update($validated);

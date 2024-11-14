@@ -1,6 +1,36 @@
 <x-app-layout>
-    <div class="py-12">
+    <div class="py-12 px-6">
         <h1 class="text-center text-2xl font-bold mb-8">Your Tasks</h1>
+        <form method="GET" action="{{ route('tasks.index') }}" class="flex flex-wrap items-center mb-8 space-x-2">
+            <div class="">
+                <input type="text" name="search" id="search" value="{{ request('search') }}"
+                    placeholder="Search by title"
+                    class="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 p-2">
+            </div>
+            <div>
+                <select name="priority" id="priority"
+                    class="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 p-2">
+                    <option value="">All Priorities</option>
+                    <option value="1" {{ request('priority') == "1" ? 'selected' : '' }}>High</option>
+                    <option value="2" {{ request('priority') == "2" ? 'selected' : '' }}>Medium</option>
+                    <option value="3" {{ request('priority') == "3" ? 'selected' : '' }}>Low</option>
+                </select>
+            </div>
+            <div>
+                <select name="status" id="status"
+                    class="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 p-2">
+                    <option value="">All Statuses</option>
+                    <option value="0" {{ request('status') == "0" ? 'selected' : '' }}>Pending</option>
+                    <option value="1" {{ request('status') == "1" ? 'selected' : '' }}>Completed</option>
+                </select>
+            </div>
+            <div>
+                <button type="submit"
+                    class="text-white bg-blue-600 hover:bg-blue-700 focus:ring-4 focus:outline-none focus:ring-blue-300 font-medium rounded-lg text-sm px-4 py-2">
+                    Search
+                </button>
+            </div>
+        </form>
         @if ($tasks->isEmpty())
             <div class="text-center">
                 <p class="text-gray-500 mb-4">No tasks yet.</p>
@@ -17,13 +47,24 @@
             <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
                 @foreach ($tasks as $task)
                     <div class="border rounded-lg p-4 shadow-lg bg-white">
-                        <h2 class="text-xl font-semibold mb-2">{{ $task->title }}</h2>
+                        <div class="flex justify-between items-center mb-2">
+                            <h2 class="text-xl font-semibold">{{ $task->title }}</h2>
+                            <p class="text-gray-600">{{ $task->created_at->format('M d, Y') }}</p>
+                        </div>
                         <p class="mb-4">{{ $task->description }}</p>
                         <p class="mb-4 font-semibold">Status:
                             <span class="{{ $task->status ? 'text-green-500' : 'text-red-500' }}">
                                 {{ $task->status ? 'Completed' : 'Pending' }}
                             </span>
                         </p>
+                        @if ($task->priority)
+                            <p class="mb-4 font-semibold">Priority:
+                                <span
+                                    class="{{ $task->priority === 1 ? 'text-red-500' : ($task->priority === 2 ? 'text-yellow-500' : 'text-green-500') }}">
+                                    {{ $task->priority === 1 ? 'High' : ($task->priority === 2 ? 'Medium' : 'Low') }}
+                                </span>
+                            </p>
+                        @endif
                         <div class="flex justify-between">
                             <button data-modal-target="edit-modal-{{ $task->id }}"
                                 data-modal-toggle="edit-modal-{{ $task->id }}"
@@ -80,7 +121,7 @@
                                         </button>
                                     </form>
                                     <button data-modal-hide="delete-modal-{{ $task->id }}" type="button"
-                                        class="py-2.5 px-5 ml-3 text-sm font-medium text-gray-900 focus:outline-none bg-white rounded-lg border border-gray-200 hover:bg-gray-100 hover:text-blue-700 focus:z-10 focus:ring-4 focus:ring-gray-100 dark:focus:ring-gray-700 dark:bg-gray-800 dark:text-gray-400 dark:border-gray-600 dark:hover:text-white dark:hover:bg-gray-700">No,
+                                        class="py-2.5 px-5 ml-3 text-sm font-medium text-gray-900 focus:outline-none bg-white rounded-lg border border-gray-200 hover:bg-gray-100 hover:text-blue-700 focus:z-10 focus:ring-4 focus:ring-gray-100">No,
                                         cancel</button>
                                 </div>
                             </div>
@@ -90,19 +131,19 @@
                     <div id="edit-modal-{{ $task->id }}" tabindex="-1" aria-hidden="true"
                         class="hidden fixed top-0 right-0 left-0 z-50 justify-center items-center w-full md:inset-0 h-[calc(100%-1rem)] max-h-full">
                         <div class="relative p-4 w-full max-w-md max-h-full">
-                            <div class="relative bg-white rounded-lg shadow dark:bg-gray-700">
-                                <div
-                                    class="flex items-center justify-between p-4 md:p-5 border-b rounded-t dark:border-gray-600">
-                                    <h3 class="text-lg font-semibold text-gray-900 dark:text-white">
+                            <div class="relative bg-white rounded-lg shadow">
+                                <div class="flex items-center justify-between p-4 md:p-5 border-b rounded-t">
+                                    <h3 class="text-lg font-semibold text-gray-900">
                                         Edit Task
                                     </h3>
                                     <button type="button"
-                                        class="text-gray-400 bg-transparent hover:bg-gray-200 hover:text-gray-900 rounded-lg text-sm w-8 h-8 ml-auto inline-flex justify-center items-center dark:hover:bg-gray-600 dark:hover:text-white"
+                                        class="text-gray-400 bg-transparent hover:bg-gray-200 hover:text-gray-900 rounded-lg text-sm w-8 h-8 ml-auto inline-flex justify-center items-center "
                                         data-modal-toggle="edit-modal-{{ $task->id }}">
                                         <svg class="w-3 h-3" aria-hidden="true" xmlns="http://www.w3.org/2000/svg"
                                             fill="none" viewBox="0 0 14 14">
-                                            <path stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"
-                                                stroke-width="2" d="M1 1l6 6m0 0l6 6M7 7l6-6M7 7l-6 6" />
+                                            <path stroke="currentColor" stroke-linecap="round"
+                                                stroke-linejoin="round" stroke-width="2"
+                                                d="M1 1l6 6m0 0l6 6M7 7l6-6M7 7l-6 6" />
                                         </svg>
                                         <span class="sr-only">Close modal</span>
                                     </button>
@@ -114,22 +155,52 @@
                                     <div class="grid gap-4 mb-4">
                                         <div class="col-span-2">
                                             <label for="title-{{ $task->id }}"
-                                                class="block mb-2 text-sm font-medium text-gray-900 dark:text-white">Title</label>
+                                                class="block mb-2 text-sm font-medium text-gray-900">Title</label>
                                             <input type="text" name="title" id="title-{{ $task->id }}"
                                                 value="{{ old('title', $task->title) }}"
-                                                class="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-primary-600 focus:border-primary-600 block w-full p-2.5 dark:bg-gray-600 dark:border-gray-500 dark:placeholder-gray-400 dark:text-white dark:focus:ring-primary-500 dark:focus:border-primary-500"
+                                                class="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-primary-600 focus:border-primary-600 block w-full p-2.5"
                                                 required>
                                         </div>
                                         <div class="col-span-2">
+                                            <label for="status-{{ $task->id }}"
+                                                class="block mb-2 text-sm font-medium text-gray-900">Status</label>
+                                            <select name="status" id="status-{{ $task->id }}"
+                                                class="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5 ">
+                                                <option value="0"
+                                                    {{ old('status', $task->status) == 0 ? 'selected' : '' }}>Pending
+                                                </option>
+                                                <option value="1"
+                                                    {{ old('status', $task->status) == 1 ? 'selected' : '' }}>Completed
+                                                </option>
+                                            </select>
+                                        </div>
+                                        <div class="col-span-2">
+                                            <label for="priority-{{ $task->id }}"
+                                                class="block mb-2 text-sm font-medium text-gray-900">Priority</label>
+                                            <select name="priority" id="priority-{{ $task->id }}"
+                                                class="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5">
+                                                <option value="">Select Priority</option>
+                                                <option value="1"
+                                                    {{ old('priority', $task->priority) == 1 ? 'selected' : '' }}>High
+                                                </option>
+                                                <option value="2"
+                                                    {{ old('priority', $task->priority) == 2 ? 'selected' : '' }}>
+                                                    Medium</option>
+                                                <option value="3"
+                                                    {{ old('priority', $task->priority) == 3 ? 'selected' : '' }}>Low
+                                                </option>
+                                            </select>
+                                        </div>
+                                        <div class="col-span-2">
                                             <label for="description-{{ $task->id }}"
-                                                class="block mb-2 text-sm font-medium text-gray-900 dark:text-white">Description</label>
+                                                class="block mb-2 text-sm font-medium text-gray-900 ">Description</label>
                                             <textarea id="description-{{ $task->id }}" name="description" rows="4"
-                                                class="block p-2.5 w-full text-sm text-black-900 bg-gray-50 rounded-lg border border-gray-300 focus:ring-blue-500 focus:border-blue-500 dark:bg-gray-600 dark:border-gray-500 dark:placeholder-gray-400 dark:text-white dark:focus:ring-blue-500 dark:focus:border-blue-500"
+                                                class="block p-2.5 w-full text-sm text-black-900 bg-gray-50 rounded-lg border border-gray-300 focus:ring-blue-500 focus:border-blue-500"
                                                 required>{{ old('description', $task->description) }}</textarea>
                                         </div>
                                     </div>
                                     <button type="submit"
-                                        class="text-white inline-flex items-center bg-blue-700 hover:bg-blue-800 focus:ring-4 focus:outline-none focus:ring-blue-300 font-medium rounded-lg text-sm px-5 py-2.5 text-center dark:bg-blue-600 dark:hover:bg-blue-700 dark:focus:ring-blue-800">
+                                        class="text-white inline-flex items-center bg-blue-700 hover:bg-blue-800 focus:ring-4 focus:outline-none focus:ring-blue-300 font-medium rounded-lg text-sm px-5 py-2.5 text-center">
                                         <svg class="mr-1 -ml-1 w-5 h-5" fill="currentColor" viewBox="0 0 20 20"
                                             xmlns="http://www.w3.org/2000/svg">
                                             <path fill-rule="evenodd"
@@ -146,5 +217,5 @@
             </div>
         @endif
     </div>
-    
+
 </x-app-layout>
